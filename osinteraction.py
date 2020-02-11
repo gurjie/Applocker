@@ -6,10 +6,6 @@ from tkinter import *
 from tkinter import scrolledtext
 from tkcalendar import Calendar, DateEntry
 
-
-
-
-
 def check_reachable():
     # The app will be usable from start_usable_hour until end_usable_hour
     start_usable_hour = 20
@@ -26,12 +22,13 @@ def check_reachable():
         print("hello")
 
 def main(): 
-    master_window = Tk()
+    master_window = Tk() #DECLARED
     master_window.resizable(False, True)
     # Parent widget for the buttons
-    buttons_frame = Frame(master_window)
+    buttons_frame = Frame(master_window) #DECLARED
     buttons_frame.grid(row=0, column=0)    
-    tkinter.Label(master_window, text = "App/File Locker",width=26, font=("Courier",23)).grid(row = 0, column=0) 
+    title = tkinter.Label(master_window, text = "App/File Locker",width=26, font=("Courier",23))
+    title.grid(row = 0, column=0) 
   
     #btn_Image = Button(buttons_frame, text='Image')
     #btn_Image.grid(row=0, column=0, padx=(10), pady=10)
