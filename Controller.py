@@ -2,6 +2,8 @@ import View as v
 import sys
 import tkinter
 from tkinter import *
+from tkinter import filedialog
+
 
 class Controller: 
 
@@ -117,5 +119,14 @@ class Controller:
         # config sun label
         self.view.getSunLabel().configure(text="sun", font=("TkDefaultFont",7), width=3, height=0)
         self.view.getSunLabel().grid(row=0, column=10, sticky=W+N)
+        # config browse button onclick
+        self.view.getBrowse().configure(command = self.fileDialogue)
+
+    def fileDialogue(self): 
+        file = filedialog.askopenfilename()
+        if file != None:
+            print(file)
+            self.view.getPathEntry().delete(0,END)
+            self.view.getPathEntry().insert(INSERT,file)
 
 
