@@ -5,6 +5,9 @@ import tkinter
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
+from Model import FilePathError
+from Model import TmpFileCreateError
+from Model import TimeError
 
 
 class Controller: 
@@ -147,22 +150,24 @@ class Controller:
     def confirm(self):
         self.file = self.view.getPathEntry().get()
         # hh to start scheduled task
-        sh = self.model.setStartHour = self.view.getBlockFromEntryHour()
+        sh = self.model.setStartHour = self.view.getBlockFromEntryHour().get()
         # mm to start scheduled task
-        sm = self.model.setStartMinute = self.view.getBlockFromEntryMinute()
+        sm = self.model.setStartMinute = self.view.getBlockFromEntryMinute().get()
         # hh to end scheduled task
-        ee = self.model.setEndHour = self.view.getBlockUntilEntryHour()
+        ee = self.model.setEndHour = self.view.getBlockUntilEntryHour().get()
         # mm to end scheduled task
-        em = self.model.setEndMinute = self.view.getBlockUntilEntryMinute()
+        em = self.model.setEndMinute = self.view.getBlockUntilEntryMinute().get()
 
         if (self.dailyIsSet()): 
-            result = self.model.execute_daily(sh,sm,ee,em,self.file)
-            if (result == 0):
-                messagebox.showerror("Filepath error", "Invalid filepath specified")
-            elif (result == 1):
-                messagebox.showinfo("Success", "App has been blocked between specified times")
-            elif (result == 2):
-                messagebox.showerror("Couldn't write script in dir", "Failed to write script to tmp dir")
+            try:
+                result = self.model.execute_daily(sh,sm,ee,em,self.file)
+            except FilePathError as fpe:
+                messagebox.showerror("Filepath error", fpe.getFile() + " is not a valid filepath.")
+            except TmpFileCreateError as tfce:
+                messagebox.showerror("Tempfile create error", tfce.getFile() + " couldn't be created.")
+            except TimeError as te:
+                messagebox.showerror("Invalid time input", "Please enter a valid time e.g. 00:59 or 23:59")
+
 
         else:
             result = self.model.execute_specified(sh,sm,ee,em,self.file)
