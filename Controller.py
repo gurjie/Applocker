@@ -1,7 +1,9 @@
 import View as v
+import Model as m
 import sys
 import tkinter
 from tkinter import *
+from tkinter import messagebox
 from tkinter import filedialog
 
 
@@ -11,9 +13,10 @@ class Controller:
         self.view = v.View() # init view and its components
         self.initView()
         self.initModel()
+        self.file = None
 
     def initModel(self): 
-
+        self.model = m.Model()
 
     def initView(self):
         self.view.getMasterWindow().resizable(False,True)
@@ -130,17 +133,43 @@ class Controller:
         self.view.getConfirmButton().grid(row=5, column=0 ,sticky=W+N, pady=9, padx=7)
 
 
+    def dailyIsSet(self):
+        if (self.view.getDaily().get()==1):
+            return True 
 
-
+    # set the selected file path to display back in the texbox
     def fileDialogue(self): 
-        file = filedialog.askopenfilename()
-        if file != None:
-            print(file)
+        self.file = filedialog.askopenfilename()
+        if self.file != None:
             self.view.getPathEntry().delete(0,END)
-            self.view.getPathEntry().insert(INSERT,file)
+            self.view.getPathEntry().insert(INSERT, self.file)
 
     def confirm(self):
-        if self.view.getDaily().get() == 1: 
-            print("geegaeg")
+        self.file = self.view.getPathEntry().get()
+        # hh to start scheduled task
+        sh = self.model.setStartHour = self.view.getBlockFromEntryHour()
+        # mm to start scheduled task
+        sm = self.model.setStartMinute = self.view.getBlockFromEntryMinute()
+        # hh to end scheduled task
+        ee = self.model.setEndHour = self.view.getBlockUntilEntryHour()
+        # mm to end scheduled task
+        em = self.model.setEndMinute = self.view.getBlockUntilEntryMinute()
+
+        if (self.dailyIsSet()): 
+            result = self.model.execute_daily(sh,sm,ee,em,self.file)
+            if (result == 0):
+                messagebox.showerror("Filepath error", "Invalid filepath specified")
+            elif (result == 1):
+                messagebox.showinfo("Success", "App has been blocked between specified times")
+            elif (result == 2):
+                messagebox.showerror("Couldn't write script in dir", "Failed to write script to tmp dir")
+
+        else:
+            result = self.model.execute_specified(sh,sm,ee,em,self.file)
+            if (result == 0):
+                messagebox.showerror("Filepath error", "Invalid filepath specified")
+            elif (result == 1):
+                messagebox.showinfo("Success", "App has been blocked between specified times")
+       
 
 

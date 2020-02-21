@@ -48,6 +48,7 @@ class View:
         self._daily_checkbox = tkinter.Checkbutton(master=self._sub_content_group)
         self._confirm = tkinter.Button(master=self._master_window)
 
+
     def getConfirmButton(self):
         return self._confirm
 
