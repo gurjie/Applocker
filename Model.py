@@ -53,11 +53,11 @@ class Model:
     def validateTime(self,sh,sm,eh,em):
         if ( (sh.isdigit()) & (sm.isdigit()) & (eh.isdigit()) & (em.isdigit()) ):
             if ( (0 <= int(sh)<24) & (0 <= int(sm)<60) & (0 <= int(eh)<24) & (0 <= int(em)<60) ):
-                print("good job")
+                return True
             else:
-                raise TimeError
+                return False
         else:
-            raise TimeError
+            return False
 
 
 
@@ -65,9 +65,10 @@ class Model:
         if (self.fileAccessible(file)):
             script = self.createTmpPowershell()
             if (self.fileAccessible(script.name)):
-                self.validateTime(sh,sm,eh,em)
-                print(self.formatTime(sh,sm))
-                print(self.formatTime(eh,em))
+                if (self.validateTime(sh,sm,eh,em)):
+                    print("made it!")
+                else:
+                    raise TimeError
             else:
                 raise TmpFileCreateError(file)
         else:
