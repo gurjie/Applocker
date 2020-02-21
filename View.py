@@ -46,6 +46,10 @@ class View:
         self._sat_checkbox = tkinter.Checkbutton(master=self._sub_content_group)
         self._sun_checkbox = tkinter.Checkbutton(master=self._sub_content_group)
         self._daily_checkbox = tkinter.Checkbutton(master=self._sub_content_group)
+        self._confirm = tkinter.Button(master=self._master_window)
+
+    def getConfirmButton(self):
+        return self._confirm
 
     def getSunCheck(self):
         return self._sun_checkbox

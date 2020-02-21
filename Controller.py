@@ -10,6 +10,10 @@ class Controller:
     def __init__(self):
         self.view = v.View() # init view and its components
         self.initView()
+        self.initModel()
+
+    def initModel(self): 
+
 
     def initView(self):
         self.view.getMasterWindow().resizable(False,True)
@@ -121,6 +125,12 @@ class Controller:
         self.view.getSunLabel().grid(row=0, column=10, sticky=W+N)
         # config browse button onclick
         self.view.getBrowse().configure(command = self.fileDialogue)
+        # config confirm button
+        self.view.getConfirmButton().configure(text = "Confirm", width=0, height=1, command = self.confirm)
+        self.view.getConfirmButton().grid(row=5, column=0 ,sticky=W+N, pady=9, padx=7)
+
+
+
 
     def fileDialogue(self): 
         file = filedialog.askopenfilename()
@@ -128,5 +138,9 @@ class Controller:
             print(file)
             self.view.getPathEntry().delete(0,END)
             self.view.getPathEntry().insert(INSERT,file)
+
+    def confirm(self):
+        if self.view.getDaily().get() == 1: 
+            print("geegaeg")
 
 
