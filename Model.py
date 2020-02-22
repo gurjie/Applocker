@@ -42,6 +42,10 @@ class DirectoryCreation(Error):
     """Raised tmp powershell script can't be written"""
     pass
 
+class decryptionPaddingError(Error):
+    """Raised tmp powershell script can't be written"""
+    pass
+
 class Model:
 
     def __init__(self): 
@@ -88,8 +92,8 @@ class Model:
         target = open(path, "rb") # opening for [r]eading as [b]inary
         data = target.read()
         extension = os.path.splitext(path)[1]
-        #self.encrypt(data)
-        self.decrypt(data,filename)
+        #self.encrypt(data,path,filename)
+        self.decrypt(data,path,filename)
         #self.generateKeys()
         #f = open(key_file_name,"w")
         #f.close()
@@ -102,13 +106,13 @@ class Model:
         hashed = hashlib.sha256(salted_filename.encode('utf-8'))
         return hashed.hexdigest()
 
-    def encrypt(self,target):
+    def encrypt(self,target, path, filename):
         #secret_code = "Unguessable"
         #key = RSA.generate(2048)
         #encrypted_key = key.export_key(passphrase=secret_code, pkcs=8,protection="scryptAndAES256-CBC")
         #file_out = open(self.dirName+"\\"+"rsa_key.bin", "wb")
         #file_out.write(encrypted_key)
-        output_file = self.dirName+'\encrypted.bin' # Output file
+        output_file = path # Output file
         data = target # Must be a bytes object
         key = b'YOUR KEYYOUR KEY' # The key you generated
 
@@ -122,8 +126,8 @@ class Model:
         file_out.close()
         print("encryption routine fin")
 
-    def decrypt(self,target,filename):
-        input_file = self.dirName+'\encrypted.bin' # Input file
+    def decrypt(self,target, path, filename):
+        input_file = path # Input file
         key = b'YOUR KEYYOUR KEY' # The key used for encryption (do not store/read this from the file)
 
         # Read the data from the file
@@ -133,12 +137,16 @@ class Model:
         file_in.close()
 
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)  # Setup cipher
-        original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size) # Decrypt and then up-pad the result
+        try:
+            original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size) # Decrypt and then up-pad the result
+        except:
+            raise decryptionPaddingError
         file_out = open(input_file, "wb") # Open file to write bytes
         file_out.write(original_data)
         file_out.close()
-        os.rename(input_file,self.dirName+"\\"+filename)
-    # creates directory for the app if it doesn't exist, to host local files etc
+        print("decryption routine fin")
+        # creates directory for the app if it doesn't exist, to host local files etc
+
     def createAppDirectory(self):
         if (self.fileAccessible(self.dirName)):
             print("Wow it exists!")

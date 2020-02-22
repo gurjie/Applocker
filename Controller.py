@@ -8,6 +8,9 @@ from tkinter import filedialog
 from Model import FilePathError
 from Model import TmpFileCreateError
 from Model import TimeError
+from Model import decryptionPaddingError
+import traceback
+
 
 
 class Controller: 
@@ -160,13 +163,17 @@ class Controller:
 
         if (self.dailyIsSet()): 
             try:
-                result = self.model.execute_daily(sh,sm,ee,em,self.file)
+                self.model.execute_daily(sh,sm,ee,em,self.file)
             except FilePathError as fpe:
                 messagebox.showerror("Filepath error", fpe.getFile() + " is not a valid filepath.")
             except TmpFileCreateError as tfce:
                 messagebox.showerror("Tempfile create error", tfce.getFile() + " couldn't be created.")
             except TimeError as te:
                 messagebox.showerror("Invalid time input", "Please enter a valid time e.g. 00:59 or 23:59")
+            except decryptionPaddingError as dpe:
+                messagebox.showerror("Decryption Routine Error","An error occurred while performing the decryption routine. Padding is incorrect.")
+
+
 
 
         else:
