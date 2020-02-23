@@ -1,8 +1,9 @@
 # Applocker
 * Needs comments and refactoring *
-* **Runs smoothly with python 3.8, but interoperability is a future work**
-* Some elements of the code are not pythonic, such as the getters and setters - but that's a part of learning I suppose
-This is just a personal project, mainly for learning purposes. 
+* **Runs smoothly with python 3.8 in win64, but interoperability is a future work**
+* Some elements of the code are not pythonic, such as the getters and setters - but that's a part of learning I suppose .This is just a personal project, mainly for learning purposes. 
+* there are a unused imports too
+
 
 Python GUI which invokes scheduled tasks to block/unblock files at certain times.
 
