@@ -27,7 +27,7 @@ Usage flow is as follows:
 
 6) creates entries in task scheduler to execute encrypt.py and decrypt.py with the file input via GUI as argument
 
-7) if decryption fails for some reason, which it shouldnt, run decrypt.py *filepath* to decrypt your file
+7) if decryption fails for some reason, which it shouldnt, run decrypt.py *filepath* to decrypt your file. It's AES 256, using a non-secret key, stored in model.py. It doesn't need to be secret
 
 8) can't create a scheduled block more than once for the same file atm, but its a trivial fix
 
