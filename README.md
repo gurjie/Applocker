@@ -1,6 +1,6 @@
 # Applocker
 * Needs comments and refactoring *
-This is just a personal proejct. 
+This is just a personal proejct, mainly for learning purposes. 
 
 Python GUI which invokes scheduled tasks to block/unblock files at certain times.
 
