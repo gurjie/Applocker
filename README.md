@@ -1,6 +1,6 @@
 # Applocker
 * Needs comments and refactoring *
-* **Currently runing on python 3,8**
+* **Currently running on python 3.8**
 This is just a personal proejct, mainly for learning purposes. 
 
 Python GUI which invokes scheduled tasks to block/unblock files at certain times.
