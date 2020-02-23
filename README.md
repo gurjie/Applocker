@@ -5,6 +5,8 @@ Python GUI which invokes scheduled tasks to block/unblock files at certain times
 
 It does so by encrypting the files in place. 
 
+It follows symlinks/shortcuts to encrypt executables or whatever the target is too
+
 1) Specify target file via GUI to block access to
 
 2) Select time to begin block, select time to restore acceess to the file
