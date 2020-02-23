@@ -13,9 +13,13 @@ def main():
         # sys.argv[1] is (or should be) the file path
         if(os.access(sys.argv[1],os.F_OK)):
             print("file accessible")
-            execute_encryption_routine(sys.argv[1])
-            toaster = ToastNotifier()
-            toaster.show_toast("Applock Encryption Success","Applock successfully ran the encryption routine on "+sys.argv[1]+". The file's now locked.")
+            try:
+                execute_encryption_routine(sys.argv[1])
+                toaster = ToastNotifier()
+                toaster.show_toast("Applock Encryption Success","Applock successfully ran the encryption routine on "+sys.argv[1]+". The file's now locked.")
+            except:
+                toaster = ToastNotifier()
+                toaster.show_toast("Applock Encryption FAILURE","Applock FAILED to run the encryption routine on "+sys.argv[1]+". Please review scheduled task")
         else:
             print("The filepath provided isn't valid")
 
