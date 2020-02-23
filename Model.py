@@ -9,8 +9,8 @@ from Crypto.Cipher import AES
 import base64
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
-
-
+import subprocess
+from subprocess import call
 
 class Error(Exception):
     """Base for exception classes"""
@@ -57,10 +57,9 @@ class decryptionError(Error):
 class Model:
 
     def __init__(self): 
+        # set the dirname for any app data
         self.dirName = os.getenv('LOCALAPPDATA')+"\Applocker"
-        print("dirname is "+self.dirName)
         self.createAppDirectory()
-        print("Model instantiated")
 
     def fileAccessible(self, file):
         return os.access(file,os.F_OK)
@@ -68,13 +67,18 @@ class Model:
 
     def createTmpPowershell(self):
         script = tempfile.NamedTemporaryFile(suffix=".ps1", mode="w+")
-        logging.warning("Created temp file to hold script: "+script.name)
         return script
 
+    def validateTimeformat(self,time):
+        if(time=="00" or time=="01" or time=="02" or time=="03" or time=="04" or time=="05" or time=="06" or time=="07" or time=="08" or time=="09"):
+            return False
+        else:
+            return True
+
     def formatTime(self, hh, mm):
-        if(int(hh)<10):
+        if(int(hh)<10 & self.validateTimeformat(hh)==True):
             hh = "0"+hh
-        if(int(mm)<10):
+        if(int(mm)<10 & self.validateTimeformat(hh)==False):
             mm = "0"+mm
         return hh+":"+mm
 
@@ -89,14 +93,62 @@ class Model:
         else:
             return False
 
-    def buildTaskDaily(self, formatted_time,path):
+    def buildEncryptionPowershell(self, path):
+        currentDir = os.path.dirname(os.path.realpath(__file__))
+        path_to_encryption_routine = currentDir+"\encrypt.py"
+        path_to_powershell = self.dirName+"\encrypt "+self.getFilenameFromPath(path)+".ps1"
+        powershell = open(path_to_powershell, 'w')
+        powershell.write("python "+path_to_encryption_routine+" "+path)
+        powershell.close()
+        return path_to_powershell
+
+    def getFilenameFromPath(self, path):
+        # extract filename from path
+        index = path.rfind("/")
+        filename = path[index:].replace("/","")
+        return filename
+
+    def schedule_lock_app(self, formatted_time,path):
+        target = open(path, "rb") # opening for [r]eading as [b]inary
+        data = target.read()
+        # run a quick 'dummy' encryption + decryption to determine if the scheduled task should proceed to create
+        try:
+            self.encrypt(data,path,self.getFilenameFromPath(path))
+        except:
+            raise encryptionError
+        try:
+            self.decrypt(data,path,self.getFilenameFromPath(path))
+        except:
+            raise decryptionError
+
+        # Build the powershell variables / executable
+        encryption_powershell = self.buildEncryptionPowershell(path) # the ps used to invoke encrypt.py on $path 
+        tt = '$Time = New-ScheduledTaskTrigger -At ' + formatted_time + ' -Daily\n'
+        user = '$User = '+socket.gethostname().lower() + "\\" + os.getlogin()+"\n"
+        program = '$PS = New-ScheduledTaskAction -Execute \"'+encryption_powershell+'\"\n'
+        register = 'Register-ScheduledTask -TaskName "block '+self.getFilenameFromPath(path)+'" -Trigger $Time -User $User -Action $PS'
+
+        print(formatted_time)
+        print(tt+user+program+register)
+        # Create the temp powershell script to register in scheduled task
+        script = open(self.dirName+"\Schedule_encryption.ps1",'w')
+        script.write(tt+user+program+register)
+        script.close()
+        #return_code = call("Powershell.exe -executionpolicy remotesigned -File "+script.name, shell=True)  ## return 0 is successful
+        #print(return_code)
+
+        #key_file_name = self.generateKeyfileName(filename)
+
+        """
+    def schedule_unlock_app(self, formatted_time,path):
+        path_to_decryption_routine = os.path.dirname(os.path.realpath(__file__))+"\decrypt.py"
         tt = '$Time = New-ScheduledTaskTrigger -At ' + formatted_time + ' -Daily\n'
         user = socket.gethostname().lower() + "\\" + os.getlogin()+"\n"
         program = '$PS = New-ScheduledTaskAction -Execute \"'+path+'\"\n'
         # extract filename from path, to set as task name
         index = path.rfind("/")
         filename = path[index:].replace("/","")
-        register = 'Register-ScheduledTask -TaskName "block "'+filename+' -Trigger $Time -User $User -Action $PS'
+        register = 'Register-ScheduledTask -TaskName "block '+filename+'" -Trigger $Time -User $User -Action $PS'
         print(tt+user+program+register)
         key_file_name = self.generateKeyfileName(filename)
         target = open(path, "rb") # opening for [r]eading as [b]inary
@@ -109,7 +161,9 @@ class Model:
         try:
             self.decrypt(data,path,filename)
         except:
-            raise decryptionError
+            raise decryptionError  
+        """  
+        
 
     # generate a name for the file the encryption key will be stored as for the routine
     def generateKeyfileName(self,filename): 
@@ -119,20 +173,14 @@ class Model:
         hashed = hashlib.sha256(salted_filename.encode('utf-8'))
         return hashed.hexdigest()
 
+
     def encrypt(self,target, path, filename):
-        #secret_code = "Unguessable"
-        #key = RSA.generate(2048)
-        #encrypted_key = key.export_key(passphrase=secret_code, pkcs=8,protection="scryptAndAES256-CBC")
-        #file_out = open(self.dirName+"\\"+"rsa_key.bin", "wb")
-        #file_out.write(encrypted_key)
         output_file = path # Output file
         data = target # Must be a bytes object
         key = b'YOUR KEYYOUR KEY' # The key you generated
-
         # Create cipher object and encrypt the data
         cipher = AES.new(key, AES.MODE_CBC) # Create a AES cipher object with the key using the mode CBC
         ciphered_data = cipher.encrypt(pad(data, AES.block_size)) # Pad the input data and then encrypt
-
         file_out = open(output_file, "wb") # Open file to write bytes
         file_out.write(cipher.iv) # Write the iv to the output file (will be required for decryption)
         file_out.write(ciphered_data) # Write the varying length cipher text to the file (this is the encrypted data)
@@ -142,24 +190,20 @@ class Model:
     def decrypt(self,target, path, filename):
         input_file = path # Input file
         key = b'YOUR KEYYOUR KEY' # The key used for encryption (do not store/read this from the file)
-
         # Read the data from the file
         file_in = open(input_file, 'rb') # Open the file to read bytes
         iv = file_in.read(16) # Read the iv out - this is 16 bytes long
         ciphered_data = file_in.read() # Read the rest of the data
         file_in.close()
-
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)  # Setup cipher
-        try:
-            original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size) # Decrypt and then up-pad the result
-        except:
-            raise decryptionPaddingError
+        original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size) # Decrypt and then up-pad the result
         file_out = open(input_file, "wb") # Open file to write bytes
         file_out.write(original_data)
         file_out.close()
         print("decryption routine fin")
         # creates directory for the app if it doesn't exist, to host local files etc
 
+    # create appdata entry for this app, to store any files or data specific to it 
     def createAppDirectory(self):
         if (self.fileAccessible(self.dirName)):
             print("Wow it exists!")
@@ -185,7 +229,8 @@ class Model:
                 if (self.validateTime(sh,sm,eh,em)):
                     start = self.formatTime(sh,sm)
                     end = self.formatTime(eh,em)
-                    self.buildTaskDaily(start,file)
+                    self.schedule_lock_app(start,file)
+                    #self.schedule_unlock_app(start,file)
                     return "success"
                 else:
                     raise TimeError

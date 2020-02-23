@@ -167,7 +167,7 @@ class Controller:
         if (self.dailyIsSet()): 
             try:
                 if(self.model.execute_daily(sh,sm,ee,em,self.file) =="success"):
-                    messagebox.showinfo("Success", "Dummy encryption/decryption routine succeeded")
+                    messagebox.showinfo("Success", "Dummy encryption/decryption routine succeeded. Scheduled task will be created.")
             except FilePathError as fpe:
                 messagebox.showerror("Filepath error", fpe.getFile() + " is not a valid filepath.")
             except TmpFileCreateError as tfce:
