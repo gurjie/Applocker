@@ -1,1 +1,0 @@
-python C:\Users\44792\projects\program_lock\encrypt.py D:/R2R/Rar.exe
