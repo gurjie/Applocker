@@ -78,6 +78,8 @@ class Model:
             mm = "0"+mm
         return hh+":"+mm
 
+    # validate start hour, start minute, end hour, end minute from GUI input, that they're suitable for scheduled tasks
+    # the file encryption routine will begin at sh:sm and decryption will run at eh:em
     def validateTime(self,sh,sm,eh,em):
         if ( (sh.isdigit()) & (sm.isdigit()) & (eh.isdigit()) & (em.isdigit()) ):
             if ( (0 <= int(sh)<24) & (0 <= int(sm)<60) & (0 <= int(eh)<24) & (0 <= int(em)<60) ):
@@ -184,6 +186,7 @@ class Model:
                     start = self.formatTime(sh,sm)
                     end = self.formatTime(eh,em)
                     self.buildTaskDaily(start,file)
+                    return "success"
                 else:
                     raise TimeError
             else:

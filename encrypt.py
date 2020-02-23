@@ -2,6 +2,8 @@ import sys
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 import os
+from win10toast import ToastNotifier
+
 
 def main(): 
     if (len(sys.argv) != 2):
@@ -12,6 +14,8 @@ def main():
         if(os.access(sys.argv[1],os.F_OK)):
             print("file accessible")
             execute_encryption_routine(sys.argv[1])
+            toaster = ToastNotifier()
+            toaster.show_toast("Applock Encryption Success","Applock successfully ran the encryption routine on "+sys.argv[1]+". The file's now locked.")
         else:
             print("The filepath provided isn't valid")
 
@@ -23,7 +27,7 @@ def execute_encryption_routine(path):
     target = open(path, "rb") # opening for [r]eading as [b]inary
     data = target.read()
     output_file = path # Output file
-    key = b'YOUR KEYYOUR KEY' # The key you generated
+    key = b'YOUR KEYYOUR KEY' # The key you generatedpip
 
     # Create cipher object and encrypt the data
     cipher = AES.new(key, AES.MODE_CBC) # Create a AES cipher object with the key using the mode CBC
