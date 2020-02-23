@@ -11,7 +11,9 @@ It does so by encrypting the files in place.
 ![Sample](/Capture.PNG?raw=true "Screenie")
 
 
-It follows symlinks/shortcuts to encrypt executables or whatever the target is too
+It follows symlinks/shortcuts to encrypt executables or whatever the target is to
+
+Usage flow is as follows:
 
 1) Specify target file via GUI to block access to
 
