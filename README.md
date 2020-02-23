@@ -25,7 +25,7 @@ Usage flow is as follows:
 
 5) Some bash will be executed, invoking a powershell script defining a scheduled task, populated from (safe) user input 
 
-6) creates a entries in task scheduler to execute encrypt.py and decrypt.py with the file input via GUI as argument
+6) creates entries in task scheduler to execute encrypt.py and decrypt.py with the file input via GUI as argument
 
 7) if decryption fails for some reason, which it shouldnt, run decrypt.py *filepath* to decrypt your file
 
