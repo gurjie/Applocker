@@ -1,4 +1,4 @@
-# windows_py
+# Applocker
 This is just a personal proejct.
 
 Python GUI which invokes scheduled tasks to block/unblock files at certain times.
