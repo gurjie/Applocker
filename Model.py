@@ -156,7 +156,6 @@ class Model:
         register = 'Register-ScheduledTask -TaskName "block '+self.getFilenameFromPath(path)+'" -Trigger $Time -User $User -Action $PS '
         #print(tt+user+program+register)
         # Create the temp powershell script to register in scheduled task
-        self.checkExistenceDelete(self.dirName+"\Schedule_encryption.ps1")
         script = open(self.dirName+"\Schedule_encryption.ps1",'w')
         script.write(tt+user+program+register)
         script.close()
