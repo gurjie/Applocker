@@ -5,6 +5,9 @@ Python GUI which invokes scheduled tasks to block/unblock files at certain times
 
 It does so by encrypting the files in place. 
 
+![Sample](/relative/path/to/Capture.PNG?raw=true "Screenie")
+
+
 It follows symlinks/shortcuts to encrypt executables or whatever the target is too
 
 1) Specify target file via GUI to block access to
