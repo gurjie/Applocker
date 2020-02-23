@@ -2,7 +2,7 @@
 * Needs comments and refactoring *
 * **Currently running on python 3.8**
 * Some elements of the code are not pythonic, such as the getters and setters - but that's a part of learning I suppose
-This is just a personal proejct, mainly for learning purposes. 
+This is just a personal project, mainly for learning purposes. 
 
 Python GUI which invokes scheduled tasks to block/unblock files at certain times.
 
