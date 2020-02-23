@@ -9,6 +9,9 @@ from Model import FilePathError
 from Model import TmpFileCreateError
 from Model import TimeError
 from Model import decryptionPaddingError
+from Model import decryptionError
+from Model import encryptionError
+
 import traceback
 
 
@@ -170,8 +173,10 @@ class Controller:
                 messagebox.showerror("Tempfile create error", tfce.getFile() + " couldn't be created.")
             except TimeError as te:
                 messagebox.showerror("Invalid time input", "Please enter a valid time e.g. 00:59 or 23:59")
-            except decryptionPaddingError as dpe:
-                messagebox.showerror("Decryption Routine Error","An error occurred while performing the decryption routine. Padding is incorrect.")
+            except decryptionError as de:
+                messagebox.showerror("Decryption Routine Error","An error occurred while performing the decryption routine. THE SCHEDULED TASKS TO BLOCK THE APP WILL NOT BE CREATED.")
+            except encryptionError as ee:
+                messagebox.showerror("Encryption Routine Error","An error occurred while performing the encryption routine. THE SCHEDULED TASKS TO BLOCK THE APP WILL NOT BE CREATED.")
 
 
 

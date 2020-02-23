@@ -46,6 +46,14 @@ class decryptionPaddingError(Error):
     """Raised tmp powershell script can't be written"""
     pass
 
+class encryptionError(Error):
+    """Raised tmp powershell script can't be written"""
+    pass
+
+class decryptionError(Error):
+    """Raised tmp powershell script can't be written"""
+    pass
+
 class Model:
 
     def __init__(self): 
@@ -91,12 +99,15 @@ class Model:
         key_file_name = self.generateKeyfileName(filename)
         target = open(path, "rb") # opening for [r]eading as [b]inary
         data = target.read()
-        extension = os.path.splitext(path)[1]
-        #self.encrypt(data,path,filename)
-        self.decrypt(data,path,filename)
-        #self.generateKeys()
-        #f = open(key_file_name,"w")
-        #f.close()
+        # run a quick 'dummy' encryption + decryption to determine if the scheduled task should proceed to create
+        try:
+            self.encrypt(data,path,filename)
+        except:
+            raise encryptionError
+        try:
+            self.decrypt(data,path,filename)
+        except:
+            raise decryptionError
 
     # generate a name for the file the encryption key will be stored as for the routine
     def generateKeyfileName(self,filename): 
