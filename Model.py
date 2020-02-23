@@ -98,9 +98,33 @@ class Model:
         path_to_encryption_routine = currentDir+"\encrypt.py"
         path_to_powershell = self.dirName+"\encrypt "+self.getFilenameFromPath(path)+".ps1"
         powershell = open(path_to_powershell, 'w')
-        powershell.write("python "+path_to_encryption_routine+" "+path)
+        powershell.write("python "+self.sanitizePath(path_to_encryption_routine)+" "+self.sanitizePath(path))
         powershell.close()
-        return path_to_powershell
+        return self.sanitizePath(path_to_powershell)
+
+    def buildDecryptionPowershell(self, path):
+        currentDir = os.path.dirname(os.path.realpath(__file__))
+        path_to_decryption_routine = currentDir+"\decrypt.py"
+        path_to_powershell = self.dirName+"\decrypt "+self.getFilenameFromPath(path)+".ps1"
+        powershell = open(path_to_powershell, 'w')
+        powershell.write("python "+self.sanitizePath(path_to_decryption_routine)+" "+self.sanitizePath(path))
+        powershell.close()
+        return self.sanitizePath(path_to_powershell)
+
+    def sanitizePath(self, path):
+        exploded = path.split("\\")
+        if(len(exploded)==1):
+            exploded = path.split("/")
+        reconstructed = ""
+        i = 0
+        for i in range(0,len(exploded)):
+            reconstructed = reconstructed + exploded[i]+"'/'"
+        index = reconstructed.find("'")
+        rindex = reconstructed.rfind("'")
+        reconstructed = reconstructed[0:index]+reconstructed[index+1:rindex]+reconstructed[rindex+1:]
+        r2index = reconstructed.rfind("/")
+        reconstructed = reconstructed[0:r2index]
+        return reconstructed
 
     def getFilenameFromPath(self, path):
         # extract filename from path
@@ -122,47 +146,45 @@ class Model:
             raise decryptionError
 
         # Build the powershell variables / executable
-        encryption_powershell = self.buildEncryptionPowershell(path) # the ps used to invoke encrypt.py on $path 
-        tt = '$Time = New-ScheduledTaskTrigger -At ' + formatted_time + ' -Daily\n'
-        user = '$User = '+socket.gethostname().lower() + "\\" + os.getlogin()+"\n"
-        program = '$PS = New-ScheduledTaskAction -Execute \"'+encryption_powershell+'\"\n'
-        register = 'Register-ScheduledTask -TaskName "block '+self.getFilenameFromPath(path)+'" -Trigger $Time -User $User -Action $PS'
+        encryption_powershell = self.buildEncryptionPowershell(path) # the ps used to invoke encrypt.py on $path
+        print(encryption_powershell)
 
-        print(formatted_time)
-        print(tt+user+program+register)
+        
+        tt = '$Time = New-ScheduledTaskTrigger -At ' + formatted_time + ' -Daily\n'
+        user = '$User = "'+socket.gethostname().lower() + "\\" + os.getlogin()+'"\n'
+        program = '$PS = New-ScheduledTaskAction -Execute \"Powershell.exe\" -Argument "'+encryption_powershell+'"\n'
+        register = 'Register-ScheduledTask -TaskName "block '+self.getFilenameFromPath(path)+'" -Trigger $Time -User $User -Action $PS '
+        #print(tt+user+program+register)
         # Create the temp powershell script to register in scheduled task
+        self.checkExistenceDelete(self.dirName+"\Schedule_encryption.ps1")
         script = open(self.dirName+"\Schedule_encryption.ps1",'w')
         script.write(tt+user+program+register)
         script.close()
-        #return_code = call("Powershell.exe -executionpolicy remotesigned -File "+script.name, shell=True)  ## return 0 is successful
-        #print(return_code)
+        return_code = call("Powershell.exe -executionpolicy remotesigned -File "+script.name, shell=True)  ## return 0 is successful
+        print(return_code)
+        os.remove(script.name)
 
         #key_file_name = self.generateKeyfileName(filename)
 
-        """
     def schedule_unlock_app(self, formatted_time,path):
-        path_to_decryption_routine = os.path.dirname(os.path.realpath(__file__))+"\decrypt.py"
+
+        # Build the powershell variables / executable
+        decryption_powershell = self.buildDecryptionPowershell(path) # the ps used to invoke encrypt.py on $path
+        print(decryption_powershell)
+
+        
         tt = '$Time = New-ScheduledTaskTrigger -At ' + formatted_time + ' -Daily\n'
-        user = socket.gethostname().lower() + "\\" + os.getlogin()+"\n"
-        program = '$PS = New-ScheduledTaskAction -Execute \"'+path+'\"\n'
-        # extract filename from path, to set as task name
-        index = path.rfind("/")
-        filename = path[index:].replace("/","")
-        register = 'Register-ScheduledTask -TaskName "block '+filename+'" -Trigger $Time -User $User -Action $PS'
-        print(tt+user+program+register)
-        key_file_name = self.generateKeyfileName(filename)
-        target = open(path, "rb") # opening for [r]eading as [b]inary
-        data = target.read()
-        # run a quick 'dummy' encryption + decryption to determine if the scheduled task should proceed to create
-        try:
-            self.encrypt(data,path,filename)
-        except:
-            raise encryptionError
-        try:
-            self.decrypt(data,path,filename)
-        except:
-            raise decryptionError  
-        """  
+        user = '$User = "'+socket.gethostname().lower() + "\\" + os.getlogin()+'"\n'
+        program = '$PS = New-ScheduledTaskAction -Execute \"Powershell.exe\" -Argument "'+decryption_powershell+'"\n'
+        register = 'Register-ScheduledTask -TaskName "unblock '+self.getFilenameFromPath(path)+'" -Trigger $Time -User $User -Action $PS '
+        #print(tt+user+program+register)
+        # Create the temp powershell script to register in scheduled task
+        script = open(self.dirName+"\Schedule_decryption.ps1",'w')
+        script.write(tt+user+program+register)
+        script.close()
+        return_code = call("Powershell.exe -executionpolicy remotesigned -File "+script.name, shell=True)  ## return 0 is successful
+        print(return_code)
+        os.remove(script.name)
         
 
     # generate a name for the file the encryption key will be stored as for the routine
@@ -214,7 +236,7 @@ class Model:
             print("Directory " , self.dirName ,  " Created ")
             if not os.path.isdir(self.dirName):
                 print("WTF IT DIDNT CREATE")
-                raise
+                #raise
             else:
                 print("craeted")
 
@@ -230,7 +252,7 @@ class Model:
                     start = self.formatTime(sh,sm)
                     end = self.formatTime(eh,em)
                     self.schedule_lock_app(start,file)
-                    #self.schedule_unlock_app(start,file)
+                    self.schedule_unlock_app(end,file)
                     return "success"
                 else:
                     raise TimeError
@@ -239,38 +261,3 @@ class Model:
         else:
             raise FilePathError(file)
 
-        """
-        try:
-            # build the contents of the scheduled task
-            tt = '$Time = New-ScheduledTaskTrigger -At 13:37 -Once\n'
-            user = '$User = \"desktop-q3h5lqm\\44792\"\n'
-            program = '$PS = New-ScheduledTaskAction -Execute \"'+self.path+'\"\n'
-            register = 'Register-ScheduledTask -TaskName "my ball" -Trigger $Time -User $User -Action $PS'
-            script.write(tt+user+program)
-            script.seek(0)
-            print(script.read())
-            
-        finally:
-            print("Closing the temp file")
-            script.close() #5
-        """
-
-    def execute_specified(self, sh, sm, eh, em, file):
-
-        """
-        script = tempfile.NamedTemporaryFile(suffix=".ps1", mode="w+")
-        logging.warning("Created temp file to hold script: "+script.name)
-        try:
-            # build the contents of the scheduled task
-            tt = '$Time = New-ScheduledTaskTrigger -At 13:37 -Once\n'
-            user = '$User = \"desktop-q3h5lqm\\44792\"\n'
-            program = '$PS = New-ScheduledTaskAction -Execute \"'+self.path+'\"\n'
-            register = 'Register-ScheduledTask -TaskName "my ball" -Trigger $Time -User $User -Action $PS'
-            script.write(tt+user+program)
-            script.seek(0)
-            print(script.read())
-            
-        finally:
-            print("Closing the temp file")
-            script.close() #5
-        """
